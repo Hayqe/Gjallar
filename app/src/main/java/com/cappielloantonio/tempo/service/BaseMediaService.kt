@@ -53,6 +53,7 @@ private const val TAG = "BaseMediaService"
 open class BaseMediaService : MediaLibraryService() {
     companion object {
         const val ACTION_BIND_EQUALIZER = "com.cappielloantonio.tempo.service.BIND_EQUALIZER"
+        const val ACTION_BIND_DIRECT = "com.cappielloantonio.tempo.service.BIND_DIRECT"
         const val ACTION_EQUALIZER_UPDATED = "com.cappielloantonio.tempo.service.EQUALIZER_UPDATED"
         const val ACTION_RELOAD_EQUALIZER = "com.cappielloantonio.tempo.service.ACTION_RELOAD_EQUALIZER"
     }
@@ -585,7 +586,7 @@ open class BaseMediaService : MediaLibraryService() {
 
     override fun onBind(intent: Intent?): IBinder? {
         // Check if the intent is for our custom equalizer binder
-        if (intent?.action == ACTION_BIND_EQUALIZER) {
+        if (intent?.action == ACTION_BIND_EQUALIZER || intent?.action == ACTION_BIND_DIRECT) {
             return binder
         }
         // Otherwise, handle it as a normal MediaLibraryService connection
