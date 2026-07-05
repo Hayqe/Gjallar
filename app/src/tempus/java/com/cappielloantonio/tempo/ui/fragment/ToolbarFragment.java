@@ -38,7 +38,8 @@ public class ToolbarFragment extends Fragment {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            com.cappielloantonio.tempo.service.BaseMediaService.LocalBinder binder = (MediaService.LocalBinder) service;
+            com.cappielloantonio.tempo.service.BaseMediaService.LocalBinder binder =
+                (com.cappielloantonio.tempo.service.BaseMediaService.LocalBinder) service;
             mediaService = (MediaService) binder.getService();
             isBound = true;
             
