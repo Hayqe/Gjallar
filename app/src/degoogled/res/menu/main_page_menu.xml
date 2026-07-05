@@ -8,8 +8,14 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/sonos_menu_item"
+        android:icon="@drawable/ic_sonos"
+        android:title="@string/speakers"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings"
         android:title="@string/menu_settings_button"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 </menu>

@@ -121,6 +121,11 @@ dependencies {
     implementation libs.retrofit.converter.gson
     implementation libs.okhttp.logging
 
+    // Moshi for JSON parsing (Sonos WebSocket API)
+    implementation 'com.squareup.moshi:moshi:1.14.0'
+    implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
+    implementation 'com.squareup.moshi:moshi-adapters:1.14.0'
+
     // Misc
     implementation libs.sdp.android
     implementation libs.customactivityoncrash

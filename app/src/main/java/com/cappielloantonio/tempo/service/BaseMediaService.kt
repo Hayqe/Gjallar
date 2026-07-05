@@ -919,6 +919,7 @@ open class BaseMediaService : MediaLibraryService() {
     }
 
     inner class LocalBinder : Binder() {
+        fun getService(): BaseMediaService = this@BaseMediaService
         fun getEqualizerManager(): EqualizerManager {
             return equalizerManager
         }

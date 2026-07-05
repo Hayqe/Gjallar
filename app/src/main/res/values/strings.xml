@@ -494,6 +494,17 @@
     <string name="settings_sub_summary_scrobble">It\'s important to note that scrobbling also relies on the server being enabled to receive this data.</string>
     <string name="settings_summary_skip_min_star_rating">When listening to an artist\'s radio, an instant mix or when shuffling all, tracks below a certain user rating will be ignored.</string>
     <string name="settings_summary_replay_gain">Normalizes the volume level of audio tracks. Files must contain the necessary metadata.</string>
+    <string name="sonos_group">Sonos Group</string>
+    <string name="sonos_device">Sonos Device</string>
+    <string name="sonos_no_devices">No Sonos devices found</string>
+    <string name="sonos_no_active_device">No active Sonos device</string>
+    <string name="sonos_ungroup">Disconnect</string>
+    <string name="sonos_ungroup_confirm">Disconnect %s from group?</string>
+    <string name="sonos_ungrouping">Disconnecting %s</string>
+    <string name="sonos_this_device">This device: %s</string>
+    <string name="sonos_playing">Playing on SONOS</string>
+    <string name="speakers">SONOS</string>
+    <string name="sonos_divider">─────────────────────────</string>
     <string name="settings_summary_loudness">Allows to correct the volume of audio playback devices (e.g. speakers).\n\nFor ReplayGain -6 is recommended, this is to avoid conflicts with clipping prevention.</string>
     <string name="settings_summary_scrobble">Scrobbling is a feature that allows your device to send information about the songs you listen to the music server. This information helps create personalized recommendations based on your music preferences.</string>
     <string name="settings_summary_share">Allows the user to share music via a link. The functionality must be supported and enabled server-side and is limited to individual tracks, albums and playlists.</string>

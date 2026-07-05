@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
@@ -108,7 +110,7 @@ public class PlayerControllerFragment extends Fragment {
     private PlayerBottomSheetViewModel playerBottomSheetViewModel;
     private ListenableFuture<MediaBrowser> mediaBrowserListenableFuture;
 
-    private MediaService.LocalBinder mediaServiceBinder;
+    private com.cappielloantonio.tempo.service.BaseMediaService.LocalBinder mediaServiceBinder;
     private boolean isServiceBound = false;
 
     @Override
@@ -541,6 +543,7 @@ public class PlayerControllerFragment extends Fragment {
     }
 
     private void setMediaControllerUI(MediaBrowser mediaBrowser) {
+        updateSonosPlayingIndicator();
         initPlaybackSpeedButton(mediaBrowser);
 
         if (mediaBrowser.getMediaMetadata().extras != null) {
@@ -830,10 +833,57 @@ public class PlayerControllerFragment extends Fragment {
         // TODO Resettare lo skip del silenzio
     }
 
+    // -------------------------------------------------------------------------
+    // Sonos indicator
+    // -------------------------------------------------------------------------
+
+    private void updateSonosPlayingIndicator() {
+        View sonosLabel = bind.getRoot().findViewById(R.id.sonos_playing_label);
+        View seekBar = bind.getRoot().findViewById(androidx.media3.ui.R.id.exo_progress);
+        View position = bind.getRoot().findViewById(R.id.exo_position);
+        View duration = bind.getRoot().findViewById(R.id.exo_duration);
+
+        if (sonosLabel == null) return;
+
+        boolean hasSonos = isServiceBound && mediaServiceBinder != null
+                && ((MediaService) mediaServiceBinder.getService()).hasSonosDevice();
+
+        int sonosVis = hasSonos ? View.VISIBLE : View.GONE;
+        int seekVis = hasSonos ? View.GONE : View.VISIBLE;
+
+        sonosLabel.setVisibility(sonosVis);
+        if (seekBar != null) seekBar.setVisibility(seekVis);
+        if (position != null) position.setVisibility(seekVis);
+        if (duration != null) duration.setVisibility(seekVis);
+    }
+
+    private final Handler sonosPollHandler = new Handler(Looper.getMainLooper());
+    private final Runnable sonosPollRunnable = new Runnable() {
+        @Override public void run() {
+            if (bind != null && isServiceBound) updateSonosPlayingIndicator();
+            sonosPollHandler.postDelayed(this, 2000);
+        }
+    };
+
+    private void startSonosPolling() {
+        sonosPollHandler.removeCallbacks(sonosPollRunnable);
+        sonosPollHandler.post(sonosPollRunnable);
+    }
+
+    private void stopSonosPolling() {
+        sonosPollHandler.removeCallbacks(sonosPollRunnable);
+    }
+
+    // -------------------------------------------------------------------------
+    // Service binding
+    // -------------------------------------------------------------------------
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mediaServiceBinder = (MediaService.LocalBinder) service;
+            updateSonosPlayingIndicator();
+            startSonosPolling();
             isServiceBound = true;
             checkEqualizerBands();
         }
@@ -841,6 +891,7 @@ public class PlayerControllerFragment extends Fragment {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mediaServiceBinder = null;
+            stopSonosPolling();
             isServiceBound = false;
         }
     };
