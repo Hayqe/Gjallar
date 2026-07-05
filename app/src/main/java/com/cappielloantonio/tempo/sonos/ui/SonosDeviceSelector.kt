@@ -85,11 +85,20 @@ class SonosDeviceSelector(
         }
         retryCount = 0
 
-        Log.d("SonosDeviceSelector", "Devices: ${discovery.devices.value.size}, Groups: ${discovery.groups.value.size}")
+        // Show cached results immediately if available (from init scan)
+        val cachedDevices = discovery.devices.value
+        val cachedGroups = discovery.groups.value
+        Log.d("SonosDeviceSelector", "Devices: ${cachedDevices.size}, Groups: ${cachedGroups.size}")
 
+        if (cachedDevices.isNotEmpty()) {
+            showDeviceListDialog(cachedDevices, cachedGroups)
+            return
+        }
+
+        // No cached results — run a fresh scan
         MainScope().launch {
             try {
-                val devices = withTimeoutOrNull(15_000L) {
+                val devices = withTimeoutOrNull(8_000L) {
                     discovery.scanNetwork()
                 }
                 if (devices != null && devices.isNotEmpty()) {
