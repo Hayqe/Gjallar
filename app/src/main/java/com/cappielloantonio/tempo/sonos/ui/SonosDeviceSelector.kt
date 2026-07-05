@@ -218,11 +218,9 @@ class SonosDeviceSelector(
                         textView.text = choice.name
                         textView.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark))
                     } else {
-                        // Normal device/group item — use theme-aware text color for dark mode
                         textView.text = choice.name
-                        val tv = TypedValue()
-                        context.theme.resolveAttribute(android.R.attr.textColorPrimary, tv, true)
-                        textView.setTextColor(tv.data)
+                        textView.setTextColor(com.google.android.material.color.MaterialColors.getColor(
+                            textView, com.google.android.material.R.attr.colorOnSurface))
                     }
                 }
                 return view
