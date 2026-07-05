@@ -7,6 +7,6 @@
     
     <!-- Sonos group icon (multiple speakers) -->
     <path
-        android:fillColor="@color/sonos_icon"
+        android:fillColor="@color/titleTextColor"
         android:pathData="M12,2C8.13,2 5,5.13 5,9c0,5.25 7,13 7,13s7,-7.75 7,-13c0,-3.87 -3.13,-7 -7,-7zM12,18.5c-3.03,0 -5.5,-2.47 -5.5,-5.5s2.47,-5.5 5.5,-5.5 5.5,2.47 5.5,5.5 -2.47,5.5 -5.5,5.5zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" />
 </vector>
