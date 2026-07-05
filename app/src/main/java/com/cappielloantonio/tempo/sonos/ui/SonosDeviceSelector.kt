@@ -3,6 +3,7 @@ package com.cappielloantonio.tempo.sonos.ui
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import com.cappielloantonio.tempo.sonos.models.SonosGroup
 import com.cappielloantonio.tempo.service.MediaService
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Handles Sonos device selection and connects selected device to MediaService.
@@ -64,120 +66,43 @@ class SonosDeviceSelector(
      */
     fun showDeviceChooser() {
         Log.d("SonosDeviceSelector", "showDeviceChooser called, mediaService=${mediaService != null}")
-        
-        // Check if media service is available
+
         if (mediaService == null) {
             retryCount++
             if (retryCount > maxRetries) {
                 Log.e("SonosDeviceSelector", "MediaService still not available after $maxRetries retries")
-                Toast.makeText(
-                    activity,
-                    "Media service not available. Please restart the app.",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(activity, "Media service not available. Please restart the app.", Toast.LENGTH_LONG).show()
                 retryCount = 0
                 return
             }
             Log.w("SonosDeviceSelector", "MediaService not available yet (attempt $retryCount/$maxRetries), waiting...")
-            Toast.makeText(
-                activity,
-                "Waiting for media service... ($retryCount/$maxRetries)",
-                Toast.LENGTH_SHORT
-            ).show()
-            // Retry after 1 second using coroutines
+            Toast.makeText(activity, "Waiting for media service... ($retryCount/$maxRetries)", Toast.LENGTH_SHORT).show()
             MainScope().launch {
                 kotlinx.coroutines.delay(1000)
                 showDeviceChooser()
             }
             return
         }
-        // Reset retry count if service is available
         retryCount = 0
-        
-        // Check current state
-        val devices = discovery.devices.value
-        val groups = discovery.groups.value
-        Log.d("SonosDeviceSelector", "Devices: ${devices.size}, Groups: ${groups.size}")
-        
-        if (isDiscovering) {
-            // Discovery is running, show loading
-            Toast.makeText(
-                activity,
-                "Scanning for Sonos devices...",
-                Toast.LENGTH_SHORT
-            ).show()
-            
-            // Observe the flows and show dialog when devices are found
-            observeAndShowDialog()
-            return
-        }
-        
-        if (devices.isEmpty() && groups.isEmpty()) {
-            // No devices found, try scanning again
-            isDiscovering = true
-            Toast.makeText(
-                activity,
-                "Scanning for Sonos devices...",
-                Toast.LENGTH_SHORT
-            ).show()
-            
-            observeAndShowDialog()
-            startDiscovery()
-            return
-        }
-        
-        // Devices already found, show dialog immediately
-        showDeviceListDialog(devices, groups)
-    }
-    
-    /**
-     * Observe device and group flows, and show dialog when data is available.
-     * Uses Kotlin Flow to efficiently wait for discovery results instead of polling.
-     */
-    private fun observeAndShowDialog() {
+
+        Log.d("SonosDeviceSelector", "Devices: ${discovery.devices.value.size}, Groups: ${discovery.groups.value.size}")
+
         MainScope().launch {
             try {
-                // Use a timeout to prevent hanging forever
-                val timeoutMs = 10000L // 10 seconds
-                val startTime = System.currentTimeMillis()
-                
-                while (System.currentTimeMillis() - startTime < timeoutMs) {
-                    val devices = discovery.devices.value
-                    val groups = discovery.groups.value
-                    
-                    if (devices.isNotEmpty() || groups.isNotEmpty()) {
-                        activity.runOnUiThread {
-                            showDeviceListDialog(devices, groups)
-                        }
-                        return@launch
-                    }
-                    
-                    // Check if discovery has errors
-                    val errors = discovery.discoveryErrors.value
-                    if (errors.isNotEmpty()) {
-                        Log.w("SonosDeviceSelector", "Discovery errors: ${errors.joinToString { it.message }}")
-                    }
-                    
-                    // Wait a bit before checking again
-                    kotlinx.coroutines.delay(500L)
+                val devices = withTimeoutOrNull(15_000L) {
+                    discovery.scanNetwork()
                 }
-                
-                // Timeout reached
-                activity.runOnUiThread {
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.sonos_no_devices),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                if (devices != null && devices.isNotEmpty()) {
+                    activity.runOnUiThread { showDeviceListDialog(devices, discovery.groups.value) }
+                } else {
+                    activity.runOnUiThread {
+                        Toast.makeText(activity, activity.getString(R.string.sonos_no_devices), Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("SonosDeviceSelector", "Error in observeAndShowDialog", e)
+                Log.e("SonosDeviceSelector", "Error in showDeviceChooser", e)
                 activity.runOnUiThread {
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.sonos_no_devices),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(activity, activity.getString(R.string.sonos_no_devices), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -293,9 +218,11 @@ class SonosDeviceSelector(
                         textView.text = choice.name
                         textView.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark))
                     } else {
-                        // Normal device/group item
+                        // Normal device/group item — use theme-aware text color for dark mode
                         textView.text = choice.name
-                        textView.setTextColor(ContextCompat.getColor(context, android.R.color.primary_text_light))
+                        val tv = TypedValue()
+                        context.theme.resolveAttribute(android.R.attr.textColorPrimary, tv, true)
+                        textView.setTextColor(tv.data)
                     }
                 }
                 return view
